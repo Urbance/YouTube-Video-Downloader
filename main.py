@@ -45,11 +45,11 @@ def main_window():
     combobox1.current(0)
     combobox1.grid(row=0, column=2)
 
-    b_addline = tk.Button(text="+")
-    b_addline.grid(row=3, column=0)
+    # b_addline = tk.Button(text="+")
+    # b_addline.grid(row=3, column=0)
 
-    b_delline = tk.Button(text="-")
-    b_delline.grid(row=3, column=1)
+    # b_delline = tk.Button(text="-")
+    # b_delline.grid(row=3, column=1)
 
     b_download = tk.Button(text="Herunterladen")
     b_download.grid(row=4, column=1)
