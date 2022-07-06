@@ -1,20 +1,25 @@
 import tkinter as tk
 import os
+import pytube
 from tkinter import ttk
 from tkinter import filedialog, messagebox
 
 def get_targetdirectory():
-    if e_targetdirectory.get() == '' and not isOutputFolderExists:
-        os.mkdir(user_music)
-        e_targetdirectory.insert(1, user_music)
-        return
+    #e_targetdirectory.insert(1, user_outputfolder)
 
-    if e_targetdirectory.get() == '' and isOutputFolderExists:
-        e_targetdirectory.insert(1, user_music)
-        return
+    filedialog.askdirectory()
 
-    path = filedialog.askdirectory()
-    e_targetdirectory.insert(1, path)
+    # if e_targetdirectory.get() == '' and not isOutputFolderExists:
+    #     os.mkdir(user_music)
+    #     e_targetdirectory.insert(1, user_music)
+    #     return
+    #
+    # if e_targetdirectory.get() == '' and isOutputFolderExists:
+    #     e_targetdirectory.insert(1, user_music)
+    #     return
+    #
+    # path = filedialog.askdirectory()
+    # e_targetdirectory.insert(1, path)
 
     # Fälle überprüfen
 
@@ -33,19 +38,29 @@ def settings_window():
 
     e_targetdirectory = tk.Entry(settings)
     e_targetdirectory.grid(row=1, column=0)
-    get_targetdirectory()
+#    get_targetdirectory(
 
     b_browse = tk.Button(settings, text="Durchsuchen", command=get_targetdirectory)
     b_browse.grid(row=2, column=0)
 
 def download_process():
-    print("Test")
     format_value = format.get()
+    youtubelink = e_youtubelink.get()
+    targetdirectory = user_outputfolder
+
+    get_video = pytube.YouTube(youtubelink)
 
     match format_value:
         case "Video":
+            get_video.streams.filter(file_extension='mp4').get_highest_resolution().download(user_outputfolder)
+            messagebox.showinfo("YouTube Video Downloader", "Das Video wurde als .mp4 heruntergeladen.")
             return
         case "Audio":
+            get_video = get_video.streams.filter(only_audio=True).first().download(targetdirectory)
+            file, ext = os.path.splitext(get_video)
+            new_file = file + '.mp3'
+            os.rename(get_video, new_file)
+            messagebox.showinfo("YouTube Video Downloader", "Das Video wurde als .mp3 heruntergeladen.")
             return
         case _:
             messagebox.showerror("Fehler", "Bitte gebe ein gültiges Format an!")
@@ -53,6 +68,7 @@ def download_process():
 
 def main_window():
     global format
+    global e_youtubelink
 
     # window setup
     root.resizable(False, False)
@@ -62,8 +78,8 @@ def main_window():
     label1 = tk.Label(text="Link zum YouTube-Video:")
     label1.grid(row=0, column=0)
 
-    entry1 = tk.Entry()
-    entry1.grid(row=0, column=1)
+    e_youtubelink = tk.Entry()
+    e_youtubelink.grid(row=0, column=1)
 
     format = ttk.Combobox(values=["Video", "Audio"], state="readonly")
     format.current(0)
@@ -86,12 +102,12 @@ def main_window():
 root = tk.Tk()
 
 user_profile = os.environ['USERPROFILE']
-user_music = user_profile + "\Music\PyTube"
+user_outputfolder = user_profile + "\Music\PyTube"
 
-isOutputFolderExists = os.path.exists(user_music)
+isOutputFolderExists = os.path.exists(user_outputfolder)
 
 if not isOutputFolderExists:
-    os.mkdir(user_music)
+    os.mkdir(user_outputfolder)
 
 
 main_window()
