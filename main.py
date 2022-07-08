@@ -5,20 +5,21 @@ from tkinter import ttk
 from tkinter import filedialog, messagebox
 
 def update_directory():
-    path = filedialog.askdirectory()
+    global outputfolder
+    outputfolder = filedialog.askdirectory()
     e_targetdirectory.delete(0, "end")
-    e_targetdirectory.insert(1, path)
+    e_targetdirectory.insert(1, outputfolder)
 
 def set_targetdirectory():
     if not isOutputFolderExists and e_targetdirectory.get() == '':
-        os.mkdir(user_outputfolder)
-        e_targetdirectory.insert(1, user_outputfolder)
+        os.mkdir(outputfolder)
+        e_targetdirectory.insert(1, outputfolder)
 
     if isOutputFolderExists and e_targetdirectory.get() == '':
-        e_targetdirectory.insert(1, user_outputfolder)
+        e_targetdirectory.insert(1, outputfolder)
 
 def open_outputfolder():
-    os.startfile(user_outputfolder)
+    os.startfile(outputfolder)
 
 def settings_window():
     global e_targetdirectory
@@ -27,14 +28,13 @@ def settings_window():
     settings = tk.Toplevel()
     settings.title("YouTube Video Downloader - Einstellungen")
     settings.resizable(False, False)
-    settings.geometry("150x100")
 
     # setup objects
-    label2 = tk.Label(settings, text="Pfad zum Speicherort")
+    label2 = ttk.Label(settings, text="Pfad zum Speicherort")
     label2.grid(row=0, column=0)
-    e_targetdirectory = tk.Entry(settings)
-    e_targetdirectory.grid(row=1, column=0)
-    b_browse = tk.Button(settings, text="Durchsuchen", command=update_directory)
+    e_targetdirectory = ttk.Entry(settings)
+    e_targetdirectory.grid(row=1, column=0, ipadx=20)
+    b_browse = ttk.Button(settings, text="Durchsuchen", command=update_directory)
     b_browse.grid(row=2, column=0)
 
     set_targetdirectory()
@@ -42,24 +42,26 @@ def settings_window():
 def download_process():
     format_value = format.get()
     youtubelink = e_youtubelink.get()
-    targetdirectory = user_outputfolder
-
+    targetdirectory = outputfolder
     get_video = pytube.YouTube(youtubelink)
+    video_title = get_video.title
 
-    match format_value:
-        case "Video":
-            get_video.streams.filter(file_extension='mp4').get_highest_resolution().download(user_outputfolder)
-            messagebox.showinfo("YouTube Video Downloader", "Das Video wurde als .mp4 heruntergeladen.")
-            return
-        case "Audio":
-            get_video = get_video.streams.filter(only_audio=True).first().download(targetdirectory)
-            file, ext = os.path.splitext(get_video)
-            new_file = file + '.mp3'
-            os.rename(get_video, new_file)
-            messagebox.showinfo("YouTube Video Downloader", "Das Video wurde als .mp3 heruntergeladen.")
-            return
-        case _:
-            messagebox.showerror("Fehler", "Bitte gebe ein gültiges Format an!")
+    try:
+        match format_value:
+            case "Video":
+                get_video.streams.filter(file_extension='mp4').get_highest_resolution().download(outputfolder)
+            case "Audio":
+                get_video = get_video.streams.filter(only_audio=True).first().download(targetdirectory)
+                file, ext = os.path.splitext(get_video)
+                new_file = file + '.mp3'
+                os.rename(get_video, new_file)
+            case _:
+                messagebox.showerror("Fehler", "Bitte gebe ein gültiges Format an!")
+    except FileExistsError:
+        messagebox.showerror("Fehler", "Die Datei existiert bereits!")
+
+    messagebox.showinfo("YouTube Video Downloader",
+                        'Das Video "' + video_title + '"\n' + "wurde unter folgenden Pfad gespeichert:\n" + outputfolder)
 
 
 def main_window():
@@ -67,43 +69,36 @@ def main_window():
     global e_youtubelink
 
     # window setup
+    # center main window
     root.resizable(False, False)
     root.title("YouTube Video Downloader")
+    root.geometry("+300+300")
 
     # setup and set layouts
     label1 = tk.Label(text="Link zum YouTube-Video:")
     label1.grid(row=0, column=0)
-
     e_youtubelink = tk.Entry()
     e_youtubelink.grid(row=0, column=1)
-
     format = ttk.Combobox(values=["Video", "Audio"], state="readonly")
     format.current(0)
     format.grid(row=0, column=2)
-
     # b_addline = tk.Button(text="+")
     # b_addline.grid(row=3, column=0)
-
     # b_delline = tk.Button(text="-")
     # b_delline.grid(row=3, column=1)
-
     b_download = tk.Button(text="Herunterladen", command=download_process)
     b_download.grid(row=4, column=1)
-
     b_open_outputfolder = tk.Button(text="Ausgabe-Ordner", command=open_outputfolder)
     b_open_outputfolder.grid(row=4, column=0)
-
     b_settings = tk.Button(text="⚙️", bd=0, highlightthickness=0, command=settings_window)
     b_settings.grid(row=4, column=3)
-
-    # create output-folder button
 
 root = tk.Tk()
 
 user_profile = os.environ['USERPROFILE']
-user_outputfolder = user_profile + "\Music\PyTube"
+outputfolder = user_profile + "\Music\PyTube"
 
-isOutputFolderExists = os.path.exists(user_outputfolder)
+isOutputFolderExists = os.path.exists(outputfolder)
 
 main_window()
 
