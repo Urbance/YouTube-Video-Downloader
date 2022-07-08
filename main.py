@@ -4,24 +4,21 @@ import pytube
 from tkinter import ttk
 from tkinter import filedialog, messagebox
 
-def get_targetdirectory():
-    #e_targetdirectory.insert(1, user_outputfolder)
+def update_directory():
+    path = filedialog.askdirectory()
+    e_targetdirectory.delete(0, "end")
+    e_targetdirectory.insert(1, path)
 
-    filedialog.askdirectory()
+def set_targetdirectory():
+    if not isOutputFolderExists and e_targetdirectory.get() == '':
+        os.mkdir(user_outputfolder)
+        e_targetdirectory.insert(1, user_outputfolder)
 
-    # if e_targetdirectory.get() == '' and not isOutputFolderExists:
-    #     os.mkdir(user_music)
-    #     e_targetdirectory.insert(1, user_music)
-    #     return
-    #
-    # if e_targetdirectory.get() == '' and isOutputFolderExists:
-    #     e_targetdirectory.insert(1, user_music)
-    #     return
-    #
-    # path = filedialog.askdirectory()
-    # e_targetdirectory.insert(1, path)
+    if isOutputFolderExists and e_targetdirectory.get() == '':
+        e_targetdirectory.insert(1, user_outputfolder)
 
-    # Fälle überprüfen
+def open_outputfolder():
+    os.startfile(user_outputfolder)
 
 def settings_window():
     global e_targetdirectory
@@ -35,13 +32,12 @@ def settings_window():
     # setup objects
     label2 = tk.Label(settings, text="Pfad zum Speicherort")
     label2.grid(row=0, column=0)
-
     e_targetdirectory = tk.Entry(settings)
     e_targetdirectory.grid(row=1, column=0)
-#    get_targetdirectory(
-
-    b_browse = tk.Button(settings, text="Durchsuchen", command=get_targetdirectory)
+    b_browse = tk.Button(settings, text="Durchsuchen", command=update_directory)
     b_browse.grid(row=2, column=0)
+
+    set_targetdirectory()
 
 def download_process():
     format_value = format.get()
@@ -94,6 +90,9 @@ def main_window():
     b_download = tk.Button(text="Herunterladen", command=download_process)
     b_download.grid(row=4, column=1)
 
+    b_open_outputfolder = tk.Button(text="Ausgabe-Ordner", command=open_outputfolder)
+    b_open_outputfolder.grid(row=4, column=0)
+
     b_settings = tk.Button(text="⚙️", bd=0, highlightthickness=0, command=settings_window)
     b_settings.grid(row=4, column=3)
 
@@ -105,10 +104,6 @@ user_profile = os.environ['USERPROFILE']
 user_outputfolder = user_profile + "\Music\PyTube"
 
 isOutputFolderExists = os.path.exists(user_outputfolder)
-
-if not isOutputFolderExists:
-    os.mkdir(user_outputfolder)
-
 
 main_window()
 
