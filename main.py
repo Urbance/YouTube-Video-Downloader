@@ -45,7 +45,7 @@ def settings_window():
     set_targetdirectory()
 
 def download_process():
-    format_value = format.get()
+    format_value = c_format.get()
     youtubelink = e_youtubelink.get()
     targetdirectory = outputfolder
     get_video = pytube.YouTube(youtubelink)
@@ -69,7 +69,7 @@ def download_process():
                         'Das Video "' + video_title + '"\n' + "wurde unter folgenden Pfad gespeichert:\n" + outputfolder)
 
 def main_window():
-    global format
+    global c_format
     global e_youtubelink
 
     # window setup
