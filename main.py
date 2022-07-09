@@ -36,6 +36,11 @@ def settings_window():
     e_targetdirectory.grid(row=1, column=0, ipadx=20)
     b_browse = ttk.Button(settings, text="Durchsuchen", command=update_directory)
     b_browse.grid(row=2, column=0)
+    l_language = ttk.Label(settings, text="Sprache")
+    l_language.grid(row=3, column=0)
+    c_language = ttk.Combobox(settings, values=["Deutsch"], state="readonly")
+    c_language.current(0)
+    c_language.grid(row=4, column=0)
 
     set_targetdirectory()
 
@@ -63,13 +68,12 @@ def download_process():
     messagebox.showinfo("YouTube Video Downloader",
                         'Das Video "' + video_title + '"\n' + "wurde unter folgenden Pfad gespeichert:\n" + outputfolder)
 
-
 def main_window():
     global format
     global e_youtubelink
 
     # window setup
-    # center main window
+    # TODO center main window
     root.resizable(False, False)
     root.title("YouTube Video Downloader")
     root.geometry("+300+300")
@@ -79,9 +83,9 @@ def main_window():
     label1.grid(row=0, column=0)
     e_youtubelink = tk.Entry()
     e_youtubelink.grid(row=0, column=1)
-    format = ttk.Combobox(values=["Video", "Audio"], state="readonly")
-    format.current(0)
-    format.grid(row=0, column=2)
+    c_format = ttk.Combobox(values=["Video", "Audio"], state="readonly")
+    c_format.current(0)
+    c_format.grid(row=0, column=2)
     # b_addline = tk.Button(text="+")
     # b_addline.grid(row=3, column=0)
     # b_delline = tk.Button(text="-")
