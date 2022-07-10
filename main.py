@@ -4,6 +4,13 @@ import pytube
 from tkinter import ttk
 from tkinter import filedialog, messagebox
 
+def setup():
+    global t
+
+    if c_language.current() == "English":
+        print("English")
+
+
 def update_directory():
     global outputfolder
     outputfolder = filedialog.askdirectory()
@@ -23,6 +30,7 @@ def open_outputfolder():
 
 def settings_window():
     global e_targetdirectory
+    global c_language
 
     # window setup
     settings = tk.Toplevel()
@@ -38,7 +46,7 @@ def settings_window():
     b_browse.grid(row=2, column=0)
     l_language = ttk.Label(settings, text="Sprache")
     l_language.grid(row=3, column=0)
-    c_language = ttk.Combobox(settings, values=["Deutsch"], state="readonly")
+    c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly")
     c_language.current(0)
     c_language.grid(row=4, column=0)
 
@@ -105,5 +113,8 @@ outputfolder = user_profile + "\Music\PyTube"
 isOutputFolderExists = os.path.exists(outputfolder)
 
 main_window()
+
+setup()
+
 
 root.mainloop()
