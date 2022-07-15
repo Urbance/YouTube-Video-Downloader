@@ -1,15 +1,27 @@
 import tkinter as tk
 import os
 import pytube
+import json
 from tkinter import ttk
 from tkinter import filedialog, messagebox
 
-def setup():
-    global t
+def setup_config_file():
+    global outputfolder
 
-    if c_language.current() == "English":
-        print("English")
+    if os.path.exists('config.json'):
+        with open('config.json', 'r') as config_file:
+            data = json.load(config_file)
+            outputfolder = data['output_folder']
+        return
 
+    outputfolder = os.environ['USERPROFILE'] + "\Music\PyTube"
+    config_values = {
+        "language": "Deutsch",
+        "output_folder": outputfolder
+    }
+
+    with open('config.json', 'w') as file:
+        json.dump(config_values, file, indent=4)
 
 def update_directory():
     global outputfolder
@@ -17,13 +29,13 @@ def update_directory():
     e_targetdirectory.delete(0, "end")
     e_targetdirectory.insert(1, outputfolder)
 
-def set_targetdirectory():
-    if not isOutputFolderExists and e_targetdirectory.get() == '':
-        os.mkdir(outputfolder)
-        e_targetdirectory.insert(1, outputfolder)
+    with open('config.json', 'r') as file:
+        data = json.load(file)
 
-    if isOutputFolderExists and e_targetdirectory.get() == '':
-        e_targetdirectory.insert(1, outputfolder)
+    data['output_folder'] = outputfolder
+
+    with open('config.json', 'w') as file:
+        json.dump(data, file, indent=4)
 
 def open_outputfolder():
     os.startfile(outputfolder)
@@ -41,21 +53,19 @@ def settings_window():
     label2 = ttk.Label(settings, text="Pfad zum Speicherort")
     label2.grid(row=0, column=0)
     e_targetdirectory = ttk.Entry(settings)
+    e_targetdirectory.insert(1, outputfolder)
     e_targetdirectory.grid(row=1, column=0, ipadx=20)
     b_browse = ttk.Button(settings, text="Durchsuchen", command=update_directory)
     b_browse.grid(row=2, column=0)
     l_language = ttk.Label(settings, text="Sprache")
     l_language.grid(row=3, column=0)
-    c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly")
+    c_language = ttk.Combobox(settings, values=["Deutsch"], state="readonly")
     c_language.current(0)
     c_language.grid(row=4, column=0)
-
-    set_targetdirectory()
 
 def download_process():
     format_value = c_format.get()
     youtubelink = e_youtubelink.get()
-    targetdirectory = outputfolder
     get_video = pytube.YouTube(youtubelink)
     video_title = get_video.title
 
@@ -64,7 +74,7 @@ def download_process():
             case "Video":
                 get_video.streams.filter(file_extension='mp4').get_highest_resolution().download(outputfolder)
             case "Audio":
-                get_video = get_video.streams.filter(only_audio=True).first().download(targetdirectory)
+                get_video = get_video.streams.filter(only_audio=True).first().download(outputfolder)
                 file, ext = os.path.splitext(get_video)
                 new_file = file + '.mp3'
                 os.rename(get_video, new_file)
@@ -94,10 +104,6 @@ def main_window():
     c_format = ttk.Combobox(values=["Video", "Audio"], state="readonly")
     c_format.current(0)
     c_format.grid(row=0, column=2)
-    # b_addline = tk.Button(text="+")
-    # b_addline.grid(row=3, column=0)
-    # b_delline = tk.Button(text="-")
-    # b_delline.grid(row=3, column=1)
     b_download = tk.Button(text="Herunterladen", command=download_process)
     b_download.grid(row=4, column=1)
     b_open_outputfolder = tk.Button(text="Ausgabe-Ordner", command=open_outputfolder)
@@ -107,14 +113,13 @@ def main_window():
 
 root = tk.Tk()
 
-user_profile = os.environ['USERPROFILE']
-outputfolder = user_profile + "\Music\PyTube"
+setup_config_file()
 
-isOutputFolderExists = os.path.exists(outputfolder)
+with open('config.json', 'r') as config_file:
+    config = json.load(config_file)
+
+language = config['language']
 
 main_window()
-
-setup()
-
-
 root.mainloop()
+
