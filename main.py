@@ -16,7 +16,7 @@ def setup_config_file():
 
     outputfolder = os.environ['USERPROFILE'] + "\Music\PyTube"
     config_values = {
-        "language": "Deutsch",
+        "language": "English",
         "output_folder": outputfolder
     }
 
@@ -25,6 +25,7 @@ def setup_config_file():
 
 def update_directory():
     global outputfolder
+
     outputfolder = filedialog.askdirectory()
     e_targetdirectory.delete(0, "end")
     e_targetdirectory.insert(1, outputfolder)
@@ -37,6 +38,24 @@ def update_directory():
     with open('config.json', 'w') as file:
         json.dump(data, file, indent=4)
 
+def set_language():
+    global c_language
+
+    match config['language']:
+        case 'English':
+            c_language.current(0)
+        case 'Deutsch':
+            c_language.current(1)
+
+def update_language(event):
+    language = c_language.get()
+
+    with open('config.json', 'w') as file:
+        config['language'] = language
+        json.dump(config, file, indent=4)
+
+    messagebox.showinfo("YouTube Video Downloader", translation['restart_program'])
+
 def open_outputfolder():
     os.startfile(outputfolder)
 
@@ -46,22 +65,23 @@ def settings_window():
 
     # window setup
     settings = tk.Toplevel()
-    settings.title("YouTube Video Downloader - Einstellungen")
+    settings.title(translation['window_settings_title'])
     settings.resizable(False, False)
 
     # setup objects
-    label2 = ttk.Label(settings, text="Pfad zum Speicherort")
+    label2 = ttk.Label(settings, text=translation['path_to_location'])
     label2.grid(row=0, column=0)
     e_targetdirectory = ttk.Entry(settings)
     e_targetdirectory.insert(1, outputfolder)
     e_targetdirectory.grid(row=1, column=0, ipadx=20)
-    b_browse = ttk.Button(settings, text="Durchsuchen", command=update_directory)
+    b_browse = ttk.Button(settings, text=translation['browse'], command=update_directory)
     b_browse.grid(row=2, column=0)
-    l_language = ttk.Label(settings, text="Sprache")
+    l_language = ttk.Label(settings, text=translation['language'])
     l_language.grid(row=3, column=0)
-    c_language = ttk.Combobox(settings, values=["Deutsch"], state="readonly")
-    c_language.current(0)
+    c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly")
+    set_language()
     c_language.grid(row=4, column=0)
+    c_language.bind('<<ComboboxSelected>>', update_language)
 
 def download_process():
     format_value = c_format.get()
@@ -79,34 +99,34 @@ def download_process():
                 new_file = file + '.mp3'
                 os.rename(get_video, new_file)
             case _:
-                messagebox.showerror("Fehler", "Bitte gebe ein gültiges Format an!")
+                messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
     except FileExistsError:
-        messagebox.showerror("Fehler", "Die Datei existiert bereits!")
-
-    messagebox.showinfo("YouTube Video Downloader",
-                        'Das Video "' + video_title + '"\n' + "wurde unter folgenden Pfad gespeichert:\n" + outputfolder)
+        messagebox.showerror("YouTube Video Downloader", translation['file_already_exists'])
+    successfully_downloaded = translation['download_successfully']
+    successfully_downloaded = successfully_downloaded.replace('%video_title%', video_title)
+    successfully_downloaded = successfully_downloaded.replace('%video_output_path%', outputfolder)
+    messagebox.showinfo("YouTube Video Downloader", successfully_downloaded)
 
 def main_window():
     global c_format
     global e_youtubelink
 
     # window setup
-    # TODO center main window
     root.resizable(False, False)
     root.title("YouTube Video Downloader")
     root.geometry("+300+300")
 
     # setup and set layouts
-    label1 = tk.Label(text="Link zum YouTube-Video:")
+    label1 = tk.Label(text=translation['link_to_youtube_video'])
     label1.grid(row=0, column=0)
     e_youtubelink = tk.Entry()
     e_youtubelink.grid(row=0, column=1)
     c_format = ttk.Combobox(values=["Video", "Audio"], state="readonly")
     c_format.current(0)
     c_format.grid(row=0, column=2)
-    b_download = tk.Button(text="Herunterladen", command=download_process)
+    b_download = tk.Button(text=translation['download'], command=download_process)
     b_download.grid(row=4, column=1)
-    b_open_outputfolder = tk.Button(text="Ausgabe-Ordner", command=open_outputfolder)
+    b_open_outputfolder = tk.Button(text=translation['output_folder'], command=open_outputfolder)
     b_open_outputfolder.grid(row=4, column=0)
     b_settings = tk.Button(text="⚙️", bd=0, highlightthickness=0, command=settings_window)
     b_settings.grid(row=4, column=3)
@@ -119,6 +139,14 @@ with open('config.json', 'r') as config_file:
     config = json.load(config_file)
 
 language = config['language']
+
+if language == 'Deutsch':
+    with open('lang_de.json', 'r') as t_file:
+        translation = json.load(t_file)
+
+if language == 'English':
+    with open('lang_en.json', 'r') as t_file:
+        translation = json.load(t_file)
 
 main_window()
 root.mainloop()

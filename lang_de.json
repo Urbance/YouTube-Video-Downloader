@@ -6,5 +6,10 @@
   "output_folder": "Ausgabe-Ordner",
   "path_to_location": "Pfad zum Speicherort",
   "browse": "Durchsuchen",
-  "language": "Sprache"
+  "language": "Sprache",
+  "restart_program": "Die Anwendung muss neugestartet werden, damit die Änderung sichtbar wird.",
+  "window_settings_title": "YouTube Video Downloader - Einstellungen",
+  "file_already_exists": "Die Datei existiert bereits.",
+  "unknown_file_format": "Bitte gebe ein gültiges Format an.",
+  "download_successfully": "Das Video \"%video_title%\" wurde unter dem Pfad \"%video_output_path%\" gespeichert."
 }
