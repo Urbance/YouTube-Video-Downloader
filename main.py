@@ -84,7 +84,7 @@ def settings_window():
     c_language.bind('<<ComboboxSelected>>', update_language)
 
 def download_process():
-    format_value = c_format.get()
+    format_value = options_var.get()
     youtubelink = e_youtubelink.get()
     get_video = pytube.YouTube(youtubelink)
     video_title = get_video.title
@@ -108,8 +108,11 @@ def download_process():
     messagebox.showinfo("YouTube Video Downloader", successfully_downloaded)
 
 def main_window():
-    global c_format
+    global options_var
     global e_youtubelink
+
+    options = ('Video', "Audio")
+    options_var = tk.StringVar()
 
     # window setup
     root.resizable(False, False)
@@ -117,13 +120,12 @@ def main_window():
     root.geometry("+300+300")
 
     # setup and set layouts
-    label1 = tk.Label(text=translation['link_to_youtube_video'])
-    label1.grid(row=0, column=0)
+    l_youtubelink = tk.Label(text=translation['link_to_youtube_video'])
+    l_youtubelink.grid(row=0, column=0, padx=5)
     e_youtubelink = tk.Entry()
-    e_youtubelink.grid(row=0, column=1)
-    c_format = ttk.Combobox(values=["Video", "Audio"], state="readonly")
-    c_format.current(0)
-    c_format.grid(row=0, column=2)
+    e_youtubelink.grid(row=0, column=1, ipadx=50, pady=5)
+    om_format = ttk.OptionMenu(root, options_var, options[0], *options)
+    om_format.grid(row=0, column=2, padx=5)
     b_download = tk.Button(text=translation['download'], command=download_process)
     b_download.grid(row=4, column=1)
     b_open_outputfolder = tk.Button(text=translation['output_folder'], command=open_outputfolder)
