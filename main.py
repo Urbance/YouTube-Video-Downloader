@@ -84,6 +84,10 @@ def settings_window():
     c_language.bind('<<ComboboxSelected>>', update_language)
 
 def download_process():
+    if e_youtubelink.get() == '':
+        messagebox.showerror('YouTube Video Downloader', translation['invalid_youtube_link'])
+        return
+
     format_value = options_var.get()
     youtubelink = e_youtubelink.get()
     get_video = pytube.YouTube(youtubelink)
@@ -102,6 +106,7 @@ def download_process():
                 messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
     except FileExistsError:
         messagebox.showerror("YouTube Video Downloader", translation['file_already_exists'])
+        return
     successfully_downloaded = translation['download_successfully']
     successfully_downloaded = successfully_downloaded.replace('%video_title%', video_title)
     successfully_downloaded = successfully_downloaded.replace('%video_output_path%', outputfolder)

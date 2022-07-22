@@ -11,5 +11,6 @@
   "window_settings_title": "YouTube Video Downloader - Settings",
   "file_already_exists": "This file is already existing.",
   "unknown_file_format": "Please enter a valid file format.",
-  "download_successfully": "The Video \"%video_title%\" successfully downloaded at \"%video_output_path%\"."
+  "download_successfully": "The Video \"%video_title%\" successfully downloaded at \"%video_output_path%\".",
+  "invalid_youtube_link": "Please enter a valid youtube link."
 }
