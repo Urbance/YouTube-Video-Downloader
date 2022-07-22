@@ -14,7 +14,7 @@ def setup_config_file():
             outputfolder = data['output_folder']
         return
 
-    outputfolder = os.environ['USERPROFILE'] + "\Music\PyTube"
+    outputfolder = os.environ['USERPROFILE'] + "\Music\YouTube-Video-Downloader"
     config_values = {
         "language": "English",
         "output_folder": outputfolder
@@ -22,6 +22,56 @@ def setup_config_file():
 
     with open('config.json', 'w') as file:
         json.dump(config_values, file, indent=4)
+
+def create_lang_en_file():
+    if os.path.exists('lang_en.json'):
+        return
+
+    values = {
+        "download": "Download",
+        "format_option_audio": "Audio",
+        "format_option_video": "Video",
+        "link_to_youtube_video": "Link to YouTube-Video",
+        "output_folder": "Open output-folder",
+        "path_to_location": "Path to location",
+        "browse": "Browse",
+        "language": "Language",
+        "restart_program": "Please restart the application.",
+        "window_settings_title": "YouTube Video Downloader - Settings",
+        "file_already_exists": "This file is already existing.",
+        "unknown_file_format": "Please enter a valid file format.",
+        "download_successfully": "The Video \"%video_title%\" successfully downloaded at \"%video_output_path%\".",
+        "invalid_youtube_link": "Please enter a valid youtube link."
+    }
+
+    with open('lang_en.json', 'w') as file:
+        json.dump(values, file, indent=4)
+
+
+def create_lang_de_file():
+    if os.path.exists('lang_de.json'):
+        return
+
+    values = {
+        "download": "Herunterladen",
+        "format_option_audio": "Audio",
+        "format_option_video": "Video",
+        "link_to_youtube_video": "Link zum YouTube-Video",
+        "output_folder": "Ausgabe-Ordner",
+        "path_to_location": "Pfad zum Speicherort",
+        "browse": "Durchsuchen",
+        "language": "Sprache",
+        "restart_program": "Die Anwendung muss neugestartet werden, damit die Änderung sichtbar wird.",
+        "window_settings_title": "YouTube Video Downloader - Einstellungen",
+        "file_already_exists": "Die Datei existiert bereits.",
+        "unknown_file_format": "Bitte gebe ein gültiges Format an.",
+        "download_successfully": "Das Video \"%video_title%\" wurde unter dem Pfad \"%video_output_path%\" gespeichert.",
+        "invalid_youtube_link": "Bitte gebe einen gueltigen YouTube-Link an."
+    }
+
+    with open('lang_de.json', 'w') as file:
+        json.dump(values, file, indent=4)
+
 
 def update_directory():
     global outputfolder
@@ -141,6 +191,8 @@ def main_window():
 root = tk.Tk()
 
 setup_config_file()
+create_lang_en_file()
+create_lang_de_file()
 
 with open('config.json', 'r') as config_file:
     config = json.load(config_file)
