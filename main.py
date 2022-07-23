@@ -41,7 +41,8 @@ def create_lang_en_file():
         "file_already_exists": "This file is already existing.",
         "unknown_file_format": "Please enter a valid file format.",
         "download_successfully": "The Video \"%video_title%\" successfully downloaded at \"%video_output_path%\".",
-        "invalid_youtube_link": "Please enter a valid youtube link."
+        "invalid_youtube_link": "Please enter a valid youtube link.",
+        "settings_confirm": "Confirm"
     }
 
     with open('lang_en.json', 'w') as file:
@@ -66,7 +67,8 @@ def create_lang_de_file():
         "file_already_exists": "Die Datei existiert bereits.",
         "unknown_file_format": "Bitte gebe ein gültiges Format an.",
         "download_successfully": "Das Video \"%video_title%\" wurde unter dem Pfad \"%video_output_path%\" gespeichert.",
-        "invalid_youtube_link": "Bitte gebe einen gültigen YouTube-Link an."
+        "invalid_youtube_link": "Bitte gebe einen gültigen YouTube-Link an.",
+        "settings_confirm": "Bestätigen"
     }
 
     with open('lang_de.json', 'w') as file:
@@ -109,9 +111,17 @@ def update_language(event):
 def open_outputfolder():
     os.startfile(outputfolder)
 
+def close_settings_window():
+    settings.destroy()
+    root.deiconify()
+
 def settings_window():
     global e_targetdirectory
     global c_language
+    global settings
+
+    # vanish root window
+    root.withdraw()
 
     # window setup
     settings = tk.Toplevel()
@@ -132,6 +142,8 @@ def settings_window():
     set_language()
     c_language.grid(row=4, column=0)
     c_language.bind('<<ComboboxSelected>>', update_language)
+    b_closewindow = ttk.Button(settings, text=translation['settings_confirm'], command=close_settings_window)
+    b_closewindow.grid(row=5, column=0)
 
 def download_process():
     if e_youtubelink.get() == '':
@@ -157,6 +169,7 @@ def download_process():
     except FileExistsError:
         messagebox.showerror("YouTube Video Downloader", translation['file_already_exists'])
         return
+
     successfully_downloaded = translation['download_successfully']
     successfully_downloaded = successfully_downloaded.replace('%video_title%', video_title)
     successfully_downloaded = successfully_downloaded.replace('%video_output_path%', outputfolder)
