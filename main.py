@@ -57,7 +57,7 @@ def create_lang_de_file():
         "format_option_audio": "Audio",
         "format_option_video": "Video",
         "link_to_youtube_video": "Link zum YouTube-Video",
-        "output_folder": "Ausgabe-Ordner",
+        "output_folder": "Öffne Ausgabe-Ordner",
         "path_to_location": "Pfad zum Speicherort",
         "browse": "Durchsuchen",
         "language": "Sprache",
@@ -66,7 +66,7 @@ def create_lang_de_file():
         "file_already_exists": "Die Datei existiert bereits.",
         "unknown_file_format": "Bitte gebe ein gültiges Format an.",
         "download_successfully": "Das Video \"%video_title%\" wurde unter dem Pfad \"%video_output_path%\" gespeichert.",
-        "invalid_youtube_link": "Bitte gebe einen gueltigen YouTube-Link an."
+        "invalid_youtube_link": "Bitte gebe einen gültigen YouTube-Link an."
     }
 
     with open('lang_de.json', 'w') as file:
