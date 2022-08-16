@@ -1,9 +1,12 @@
-import tkinter as tk
-import os
-import pytube
 import json
-from tkinter import ttk
-from tkinter import filedialog, messagebox
+import os
+import tkinter as tk
+import tkinter.font as font
+from tkinter import W, Misc, filedialog, messagebox, ttk
+from turtle import bgcolor
+
+import pytube
+
 
 def setup_config_file():
     global outputfolder
@@ -116,7 +119,7 @@ def close_settings_window():
     root.deiconify()
 
 def settings_window():
-    global e_targetdirectory
+    # global e_targetdirectory
     global c_language
     global settings
 
@@ -131,17 +134,22 @@ def settings_window():
     # setup objects
     label2 = ttk.Label(settings, text=translation['path_to_location'])
     label2.grid(row=0, column=0)
+
     e_targetdirectory = ttk.Entry(settings)
     e_targetdirectory.insert(1, outputfolder)
     e_targetdirectory.grid(row=1, column=0, ipadx=20)
+
     b_browse = ttk.Button(settings, text=translation['browse'], command=update_directory)
     b_browse.grid(row=2, column=0)
+
     l_language = ttk.Label(settings, text=translation['language'])
     l_language.grid(row=3, column=0)
+
     c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly")
     set_language()
     c_language.grid(row=4, column=0)
     c_language.bind('<<ComboboxSelected>>', update_language)
+    
     b_closewindow = ttk.Button(settings, text=translation['settings_confirm'], command=close_settings_window)
     b_closewindow.grid(row=5, column=0)
 
@@ -178,6 +186,7 @@ def download_process():
 def main_window():
     global options_var
     global e_youtubelink
+    global e_targetdirectory
 
     options = ('Video', "Audio")
     options_var = tk.StringVar()
@@ -188,19 +197,36 @@ def main_window():
     root.geometry("+300+300")
 
     # setup and set layouts
-    l_youtubelink = tk.Label(text=translation['link_to_youtube_video'])
-    l_youtubelink.grid(row=0, column=0, padx=5)
-    e_youtubelink = tk.Entry()
-    e_youtubelink.grid(row=0, column=1, ipadx=50, pady=5)
-    om_format = ttk.OptionMenu(root, options_var, options[0], *options)
-    om_format.grid(row=0, column=2, padx=5)
-    b_download = tk.Button(text=translation['download'], command=download_process)
-    b_download.grid(row=4, column=1)
-    b_open_outputfolder = tk.Button(text=translation['output_folder'], command=open_outputfolder)
-    b_open_outputfolder.grid(row=4, column=0)
-    b_settings = tk.Button(text="⚙️", bd=0, highlightthickness=0, command=settings_window)
-    b_settings.grid(row=4, column=3)
+    l_output_folder = tk.Label(text=translation['path_to_location'], font=("Arial", 10))
+    l_output_folder.grid(row=0, column=0, sticky=tk.W, padx=10)
 
+    e_targetdirectory = tk.Entry(font=("Arial", 12), borderwidth=0)
+    e_targetdirectory.insert(1, outputfolder)
+    e_targetdirectory.grid(row=1, column=0, ipadx=100, ipady=5, padx=10)
+
+    # TODO Button doesn't work, only in settings!
+    b_browse = tk.Button(text=translation['browse'], command=update_directory, font=("Arial", 10), background="#83838B", foreground="white", relief="flat")
+    b_browse.grid(row=2, column=0, pady=10, ipadx=50, ipady=5)
+
+    l_youtubelink = tk.Label(text=translation['link_to_youtube_video'], font=("Arial", 10))
+    l_youtubelink.grid(row=3, column=0, sticky=tk.W, padx=10)
+    e_youtubelink = tk.Entry(font=("Arial", 12), borderwidth=0)
+    e_youtubelink.grid(row=4, column=0, ipadx=100, ipady=5, padx=10)
+
+    b_open_outputfolder = tk.Button(text=translation['output_folder'], command=open_outputfolder, font=("Arial", 10), background="#83838B", foreground="white", relief="flat")
+    b_open_outputfolder.grid(row=5, column=0, sticky=tk.W, pady=10, padx=5 , ipadx=50, ipady=5)
+
+    om_format = ttk.OptionMenu(root, options_var, options[0], *options)
+    om_format.grid(row=5, column=0, sticky=tk.E)
+
+    b_download = tk.Button(text=translation['download'], command=download_process, font=("Arial", 10), background="#27a102", foreground="white", relief="flat")
+    b_download.grid(row=6, column=0, padx=10, ipadx=50, ipady=5)
+
+    b_settings = tk.Button(text="⚙️", bd=0, highlightthickness=0, command=settings_window)
+    b_settings.grid(row=7, column=0, ipadx=50)
+
+    # Query object
+    # print(Misc.winfo_class(e_targetdirectory))
 root = tk.Tk()
 
 setup_config_file()
@@ -222,4 +248,3 @@ if language == 'English':
 
 main_window()
 root.mainloop()
-
