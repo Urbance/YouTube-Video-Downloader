@@ -3,10 +3,7 @@ import os
 import tkinter as tk
 import tkinter.font as font
 from tkinter import W, Misc, filedialog, messagebox, ttk
-from turtle import bgcolor
-
 import pytube
-
 
 def setup_config_file():
     global outputfolder
@@ -118,41 +115,6 @@ def close_settings_window():
     settings.destroy()
     root.deiconify()
 
-def settings_window():
-    # global e_targetdirectory
-    global c_language
-    global settings
-
-    # vanish root window
-    root.withdraw()
-
-    # window setup
-    settings = tk.Toplevel()
-    settings.title(translation['window_settings_title'])
-    settings.resizable(False, False)
-
-    # setup objects
-    label2 = ttk.Label(settings, text=translation['path_to_location'])
-    label2.grid(row=0, column=0)
-
-    e_targetdirectory = ttk.Entry(settings)
-    e_targetdirectory.insert(1, outputfolder)
-    e_targetdirectory.grid(row=1, column=0, ipadx=20)
-
-    b_browse = ttk.Button(settings, text=translation['browse'], command=update_directory)
-    b_browse.grid(row=2, column=0)
-
-    l_language = ttk.Label(settings, text=translation['language'])
-    l_language.grid(row=3, column=0)
-
-    c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly")
-    set_language()
-    c_language.grid(row=4, column=0)
-    c_language.bind('<<ComboboxSelected>>', update_language)
-    
-    b_closewindow = ttk.Button(settings, text=translation['settings_confirm'], command=close_settings_window)
-    b_closewindow.grid(row=5, column=0)
-
 def download_process():
     if e_youtubelink.get() == '':
         messagebox.showerror('YouTube Video Downloader', translation['invalid_youtube_link'])
@@ -183,6 +145,38 @@ def download_process():
     successfully_downloaded = successfully_downloaded.replace('%video_output_path%', outputfolder)
     messagebox.showinfo("YouTube Video Downloader", successfully_downloaded)
 
+def settings_window():
+    # global e_targetdirectory
+    global c_language
+    global settings
+
+    # vanish root window
+    root.withdraw()
+
+    # window setup
+    settings = tk.Toplevel()
+    settings.title(translation['window_settings_title'])
+    settings.resizable(False, False)
+
+    # style setup
+    style = ttk.Style(settings)
+    settings.tk.call('source', 'azure dark/azure dark.tcl')
+    style.theme_use('azure')
+
+    # setup objects
+    l_language = ttk.Label(settings, text=translation['language'])
+    l_language.grid(row=3, column=0)
+
+    c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly", style="Custom.TCombobox")
+    set_language()
+    c_language.grid(row=4, column=0)
+    c_language.bind('<<ComboboxSelected>>', update_language)
+
+    b_closewindow = ttk.Button(settings, text=translation['settings_confirm'], command=close_settings_window)
+
+    # b_closewindow = ttk.Button(settings, text=translation['settings_confirm'], command=close_settings_window, font=("Arial", 10), background="#83838B", foreground="white", relief="flat")
+    b_closewindow.grid(row=5, column=0)
+
 def main_window():
     global options_var
     global e_youtubelink
@@ -204,7 +198,6 @@ def main_window():
     e_targetdirectory.insert(1, outputfolder)
     e_targetdirectory.grid(row=1, column=0, ipadx=100, ipady=5, padx=10)
 
-    # TODO Button doesn't work, only in settings!
     b_browse = tk.Button(text=translation['browse'], command=update_directory, font=("Arial", 10), background="#83838B", foreground="white", relief="flat")
     b_browse.grid(row=2, column=0, pady=10, ipadx=50, ipady=5)
 
@@ -222,11 +215,12 @@ def main_window():
     b_download = tk.Button(text=translation['download'], command=download_process, font=("Arial", 10), background="#27a102", foreground="white", relief="flat")
     b_download.grid(row=6, column=0, padx=10, ipadx=50, ipady=5)
 
-    b_settings = tk.Button(text="⚙️", bd=0, highlightthickness=0, command=settings_window)
+    b_settings = tk.Button(text="⚙", bd=0, highlightthickness=0, command=settings_window)
     b_settings.grid(row=7, column=0, ipadx=50)
 
     # Query object
     # print(Misc.winfo_class(e_targetdirectory))
+
 root = tk.Tk()
 
 setup_config_file()
