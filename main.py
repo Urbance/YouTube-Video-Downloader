@@ -27,6 +27,7 @@ class MainFrame(ttk.Frame):
 
         global e_youtubelink
         global e_targetdirectory
+        global options_var
 
         # objects setup
         l_output_folder = ttk.Label(self, text=translation['path_to_location'])
@@ -205,7 +206,7 @@ def update_language(event):
     # with open('config.json', 'w') as file:
     #     config['language'] = selected_language
     #     json.dump(config, file, indent=4)
- 
+
     # messagebox.showinfo("YouTube Video Downloader", translation['restart_program'])
     # root.destroy()
     # os.startfile("main.py")
@@ -294,19 +295,6 @@ def settings_window():
     l_credits = ttk.Label(settings, text=translation['credits'])
     l_credits.grid(row=4, column=0, sticky="W")
 
-def main_window():
-    global options_var
-    global e_youtubelink
-    global e_targetdirectory
-    global test_frame
-
-    # Query object
-    # print(Misc.winfo_class(e_targetdirectory))
-
-
-    main_window()
-
-
 if __name__ == "__main__":
     # startup
     setup_config_file()
@@ -324,3 +312,6 @@ if __name__ == "__main__":
     style.theme_use('radiance')
 
     app.mainloop()
+
+    # Query object
+    # print(Misc.winfo_class(e_targetdirectory))
