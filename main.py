@@ -201,16 +201,15 @@ def fill_language_field():
             c_language.current(1)
 
 def update_language(event):
-    pass
-    # selected_language = c_language.get()
-    #
-    # with open('config.json', 'w') as file:
-    #     config['language'] = selected_language
-    #     json.dump(config, file, indent=4)
+    selected_language = c_language.get()
 
-    # messagebox.showinfo("YouTube Video Downloader", translation['restart_program'])
-    # root.destroy()
-    # os.startfile("main.py")
+    with open('config.json', 'w') as file:
+        config['language'] = selected_language
+        json.dump(config, file, indent=4)
+
+    messagebox.showinfo("YouTube Video Downloader", translation['restart_program'])
+    app.destroy()
+    os.startfile("main.py")
 
 def open_outputfolder():
     os.startfile(outputfolder)
