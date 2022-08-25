@@ -22,7 +22,7 @@ class App(tk.Tk):
 
 
 class MainFrame(ttk.Frame):
-    def __init__(self, container, v):
+    def __init__(self, container):
         super().__init__(container)
 
         global e_youtubelink
@@ -60,8 +60,6 @@ class DownloadSection(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
 
-        global video_title
-
         l_video_title = ttk.Label(self, text="title" + video_title)
         l_video_title.grid(row=1, column=0)
 
@@ -87,7 +85,7 @@ def change_frame_to_download_section_and_get_video():
     video_title = get_video.title
     video_thumbnail = get_video.thumbnail_url
 
-    print(video_title)
+    frame2 = DownloadSection(app)
     frame2.pack(fill="both", expand=1)
     frame.forget()
 
@@ -207,7 +205,7 @@ def update_language(event):
     # with open('config.json', 'w') as file:
     #     config['language'] = selected_language
     #     json.dump(config, file, indent=4)
-    #
+ 
     # messagebox.showinfo("YouTube Video Downloader", translation['restart_program'])
     # root.destroy()
     # os.startfile("main.py")
@@ -318,7 +316,7 @@ if __name__ == "__main__":
     # setup window and frame
     app = App()
     frame = MainFrame(app)
-    frame2 = DownloadSection(app)
+    # frame2 = DownloadSection(app)
 
     # setup style
     style = ttk.Style()
