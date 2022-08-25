@@ -56,8 +56,11 @@ class MainFrame(ttk.Frame):
         b_next_frame = ttk.Button(self, text="Next", command=lambda:change_frame_to_download_section_and_get_video())
         b_next_frame.grid(row=6, column=0, sticky=tk.E, pady=10)
 
+        b_settings = tk.Button(self, text="⚙", bd=0, highlightthickness=0, command=settings_window)
+        b_settings.grid(row=6, column=0, sticky=tk.W)
+
         self.pack(fill="both", expand=1)
-class DownloadSection(ttk.Frame):
+class DownloadSectionFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
 
@@ -67,8 +70,6 @@ class DownloadSection(ttk.Frame):
         b_download = ttk.Button(self, text=translation['download'], command=download_process)
         b_download.grid(row=3, column=0)
 
-        b_settings = tk.Button(self, text="⚙", bd=0, highlightthickness=0, command=settings_window)
-        b_settings.grid(row=4, column=0, ipadx=50)
 def change_frame_to_download_section_and_get_video():
     if e_targetdirectory.get() == '':
         messagebox.showerror('YouTube Video Downloader', translation['no_directory_path'])
@@ -86,7 +87,7 @@ def change_frame_to_download_section_and_get_video():
     video_title = get_video.title
     video_thumbnail = get_video.thumbnail_url
 
-    frame2 = DownloadSection(app)
+    frame2 = DownloadSectionFrame(app)
     frame2.pack(fill="both", expand=1)
     frame.forget()
 
@@ -217,6 +218,7 @@ def open_outputfolder():
 def close_settings_window():
     settings.destroy()
     app.deiconify()
+
 def download_process():
     format_value = options_var.get()
     youtubelink = e_youtubelink.get()
