@@ -6,8 +6,6 @@ import pytube
 import moviepy.editor as mpe
 import shutil
 
-
-
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -19,7 +17,6 @@ class App(tk.Tk):
         x = (self.winfo_screenwidth() - self.winfo_reqwidth()) / 2
         y = (self.winfo_screenheight() - self.winfo_reqheight()) / 2
         self.geometry("+%d+%d" % (x, y))
-
 
 class MainFrame(ttk.Frame):
     def __init__(self, container):
@@ -53,7 +50,7 @@ class MainFrame(ttk.Frame):
         om_format = ttk.OptionMenu(self, options_var, options[0], *options)
         om_format.grid(row=5, column=0, sticky=tk.E)
 
-        b_next_frame = ttk.Button(self, text="Next", command=lambda:change_frame_to_download_section_and_get_video())
+        b_next_frame = ttk.Button(self, text=translation['next'], command=lambda:change_frame_to_download_section_and_get_video())
         b_next_frame.grid(row=6, column=0, sticky=tk.E, pady=10)
 
         b_settings = tk.Button(self, text="⚙", bd=0, highlightthickness=0, command=settings_window)
@@ -64,8 +61,10 @@ class DownloadSectionFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
 
-        l_video_title = ttk.Label(self, text="title" + video_title)
-        l_video_title.grid(row=1, column=0)
+        format_value = options_var.get()
+
+        l_video_informations = ttk.Label(self, text=translation['video_title'] + video_title + "\n" + translation['video_format'] + format_value + "\n" + translation['video_resolution'] + "Highest Resolution")
+        l_video_informations.grid(row=1, column=0)
 
         b_download = ttk.Button(self, text=translation['download'], command=download_process)
         b_download.grid(row=3, column=0)
@@ -80,12 +79,10 @@ def change_frame_to_download_section_and_get_video():
         return
 
     global video_title
-    global video_thumbnail
 
     youtubelink = e_youtubelink.get()
     get_video = pytube.YouTube(youtubelink)
     video_title = get_video.title
-    video_thumbnail = get_video.thumbnail_url
 
     frame2 = DownloadSectionFrame(app)
     frame2.pack(fill="both", expand=1)
@@ -129,7 +126,12 @@ def setup_language_files():
         "download_successfully": "The Video \"%video_title%\" successfully downloaded at \"%video_output_path%\".",
         "invalid_youtube_link": "Please enter a valid youtube link.",
         "settings_confirm": "Confirm",
-        "credits": "Design \"Radiance\" by RedFantom"
+        "credits": "Design \"Radiance\" by RedFantom",
+        "next": "Next",
+        "video_title": "Title",
+        "video_format": "Format",
+        "video_resolution": "Resolution"
+
     }
 
     with open('lang_en.json', 'w') as file:
@@ -153,7 +155,11 @@ def setup_language_files():
         "download_successfully": "Das Video \"%video_title%\" wurde unter dem Pfad \"%video_output_path%\" gespeichert.",
         "invalid_youtube_link": "Bitte gebe einen gültigen YouTube-Link an.",
         "settings_confirm": "Bestätigen",
-        "credits": "Design \"Radiance\" by RedFantom"
+        "credits": "Design \"Radiance\" by RedFantom",
+        "next": "Weiter",
+        "video_title": "Titel",
+        "video_format": "Format",
+        "video_resolution": "Auflösung"
     }
 
     with open('lang_de.json', 'w') as file:
