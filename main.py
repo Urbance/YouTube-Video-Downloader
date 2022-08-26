@@ -67,13 +67,14 @@ class DownloadSectionFrame(ttk.Frame):
         l_video_informations.grid(row=1, column=0)
 
 
-        b_back = ttk.Button(self, text=translation['back'])
+        b_back = ttk.Button(self, text=translation['back'], command=change_frame_to_main_frame)
         b_back.grid(row=3, column=0, sticky=tk.W)
 
         b_download = ttk.Button(self, text=translation['download'], command=download_process)
         b_download.grid(row=3, column=0, sticky=tk.E)
 
 def change_frame_to_download_section_and_get_video():
+    global frame2
     if e_targetdirectory.get() == '':
         messagebox.showerror('YouTube Video Downloader', translation['no_directory_path'])
         return
@@ -91,6 +92,11 @@ def change_frame_to_download_section_and_get_video():
     frame2 = DownloadSectionFrame(app)
     frame2.pack(fill="both", expand=1)
     frame.forget()
+
+
+def change_frame_to_main_frame():
+    frame.pack(fill="both", expand=1)
+    frame2.forget()
 
 def setup_config_file():
     global outputfolder
