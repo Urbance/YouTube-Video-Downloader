@@ -66,8 +66,12 @@ class DownloadSectionFrame(ttk.Frame):
         l_video_informations = ttk.Label(self, text=translation['video_title'] + ": " + video_title + "\n" + translation['video_format'] + ": " + format_value + "\n" + translation['video_resolution'] + ": " + "Highest Resolution")
         l_video_informations.grid(row=1, column=0)
 
+
+        b_back = ttk.Button(self, text=translation['back'])
+        b_back.grid(row=3, column=0, sticky=tk.W)
+
         b_download = ttk.Button(self, text=translation['download'], command=download_process)
-        b_download.grid(row=3, column=0)
+        b_download.grid(row=3, column=0, sticky=tk.E)
 
 def change_frame_to_download_section_and_get_video():
     if e_targetdirectory.get() == '':
@@ -110,7 +114,7 @@ def setup_language_files():
 
     # create english language file
     values = {
-        "download": "Download",
+        "download": "Download »",
         "format_option_audio": "Audio",
         "format_option_video": "Video",
         "link_to_youtube_video": "Link to YouTube-Video",
@@ -139,7 +143,7 @@ def setup_language_files():
 
     # create german language file
     values = {
-        "download": "Herunterladen",
+        "download": "Herunterladen »",
         "format_option_audio": "Audio",
         "format_option_video": "Video",
         "link_to_youtube_video": "Link zum YouTube-Video",
