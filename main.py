@@ -63,7 +63,7 @@ class DownloadSectionFrame(ttk.Frame):
 
         format_value = options_var.get()
 
-        l_video_informations = ttk.Label(self, text=translation['video_title'] + video_title + "\n" + translation['video_format'] + format_value + "\n" + translation['video_resolution'] + "Highest Resolution")
+        l_video_informations = ttk.Label(self, text=translation['video_title'] + ": " + video_title + "\n" + translation['video_format'] + ": " + format_value + "\n" + translation['video_resolution'] + ": " + "Highest Resolution")
         l_video_informations.grid(row=1, column=0)
 
         b_download = ttk.Button(self, text=translation['download'], command=download_process)
@@ -127,11 +127,11 @@ def setup_language_files():
         "invalid_youtube_link": "Please enter a valid youtube link.",
         "settings_confirm": "Confirm",
         "credits": "Design \"Radiance\" by RedFantom",
-        "next": "Next",
+        "next": "Next »",
+        "back": "« Back",
         "video_title": "Title",
         "video_format": "Format",
         "video_resolution": "Resolution"
-
     }
 
     with open('lang_en.json', 'w') as file:
@@ -156,7 +156,8 @@ def setup_language_files():
         "invalid_youtube_link": "Bitte gebe einen gültigen YouTube-Link an.",
         "settings_confirm": "Bestätigen",
         "credits": "Design \"Radiance\" by RedFantom",
-        "next": "Weiter",
+        "next": "Weiter »",
+        "back": "« Zurück",
         "video_title": "Titel",
         "video_format": "Format",
         "video_resolution": "Auflösung"
@@ -238,7 +239,6 @@ def download_process():
 
                 # download video and audio and rename both files
                 yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().download()
-                print(get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().resolution)
                 os.rename(yt_video, vname)
                 audio = get_video.streams.filter(only_audio=True).first().download()
                 os.rename(audio, aname)
@@ -253,7 +253,7 @@ def download_process():
                 audio.close()
                 final.close()
 
-                # clean up
+                # cleanup
                 os.remove(vname)
                 os.remove(aname)
 
