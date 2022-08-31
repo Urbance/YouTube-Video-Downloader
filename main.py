@@ -1,12 +1,12 @@
 import json
 import os
-import tkinter as tk
-from tkinter import filedialog, messagebox, ttk
 import pytube
 import moviepy.editor as mpe
 import shutil
+from tkinter import ttk, filedialog, messagebox, W, E, Tk, StringVar, Button, Toplevel
 
-class App(tk.Tk):
+
+class App(Tk):
     def __init__(self):
         super().__init__()
 
@@ -28,7 +28,7 @@ class MainFrame(ttk.Frame):
 
         # objects setup
         l_output_folder = ttk.Label(self, text=translation['path_to_location'])
-        l_output_folder.grid(row=0, column=0, sticky=tk.W)
+        l_output_folder.grid(row=0, column=0, sticky=W)
 
         e_targetdirectory = ttk.Entry(self)
         e_targetdirectory.insert(1, outputfolder)
@@ -38,23 +38,23 @@ class MainFrame(ttk.Frame):
         b_browse.grid(row=2, column=0, pady=10)
 
         l_youtubelink = ttk.Label(self, text=translation['link_to_youtube_video'])
-        l_youtubelink.grid(row=3, column=0, sticky=tk.W)
+        l_youtubelink.grid(row=3, column=0, sticky=W)
         e_youtubelink = ttk.Entry(self)
         e_youtubelink.grid(row=4, column=0, ipadx=100)
 
         b_open_outputfolder = ttk.Button(self, text=translation['output_folder'], command=open_outputfolder)
-        b_open_outputfolder.grid(row=5, column=0, sticky=tk.W, pady=10)
+        b_open_outputfolder.grid(row=5, column=0, sticky=W, pady=10)
 
         options = ('Video', "Audio")
-        options_var = tk.StringVar()
+        options_var = StringVar()
         om_format = ttk.OptionMenu(self, options_var, options[0], *options)
-        om_format.grid(row=5, column=0, sticky=tk.E)
+        om_format.grid(row=5, column=0, sticky=E)
 
         b_next_frame = ttk.Button(self, text=translation['next'], command=lambda:change_frame_to_download_section_and_get_video())
-        b_next_frame.grid(row=6, column=0, sticky=tk.E, pady=10)
+        b_next_frame.grid(row=6, column=0, sticky=E, pady=10)
 
-        b_settings = tk.Button(self, text="⚙", bd=0, highlightthickness=0, command=settings_window)
-        b_settings.grid(row=6, column=0, sticky=tk.W)
+        b_settings = Button(self, text="⚙", bd=0, highlightthickness=0, command=settings_window)
+        b_settings.grid(row=6, column=0, sticky=W)
 
         self.pack(fill="both", expand=1)
 class DownloadSectionFrame(ttk.Frame):
@@ -66,37 +66,110 @@ class DownloadSectionFrame(ttk.Frame):
         l_video_informations = ttk.Label(self, text=translation['video_title'] + ": " + video_title + "\n" + translation['video_format'] + ": " + format_value + "\n" + translation['video_resolution'] + ": " + "Highest Resolution")
         l_video_informations.grid(row=1, column=0)
 
-
-        b_back = ttk.Button(self, text=translation['back'], command=change_frame_to_main_frame)
-        b_back.grid(row=3, column=0, sticky=tk.W)
+        b_back = ttk.Button(self, text=translation['back'], command=lambda:change_frame_to_main_frame("download_section_frame"))
+        b_back.grid(row=3, column=0, sticky=W)
 
         b_download = ttk.Button(self, text=translation['download'], command=download_process)
-        b_download.grid(row=3, column=0, sticky=tk.E)
+        b_download.grid(row=3, column=1, sticky=E)
+
+class FinalFrame(ttk.Frame):
+    def __init__(self, container):
+        super().__init__(container)
+
+        successfully_downloaded = translation['download_successfully']
+        successfully_downloaded = successfully_downloaded.replace('%video_title%', video_title)
+        successfully_downloaded = successfully_downloaded.replace('%video_output_path%', outputfolder)
+        l_successfully_downloaded = ttk.Label(self, text=successfully_downloaded)
+        l_successfully_downloaded.grid(row=1, column=0)
+
+        b_download_new_video = ttk.Button(self, text=translation['download_new_video'], command=lambda:change_frame_to_main_frame("final_frame"))
+        b_download_new_video.grid(row=2, column=0, sticky=E)
+
+        b_open_outputfolder = ttk.Button(self, text=translation['output_folder'], command=open_outputfolder)
+        b_open_outputfolder.grid(row=2, column=0, sticky=W, pady=10)
+
+
+def download_process():
+    global video_title
+    global final_frame
+
+    format_value = options_var.get()
+    youtubelink = e_youtubelink.get()
+    get_video = pytube.YouTube(youtubelink)
+    video_title = get_video.title
+
+
+    try:
+        match format_value:
+            case "Video":
+                vname = "video.mp4"
+                aname = "audio.mp3"
+
+                # download video and audio and rename both files
+                yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().download()
+                os.rename(yt_video, vname)
+                audio = get_video.streams.filter(only_audio=True).first().download()
+                os.rename(audio, aname)
+
+                video = mpe.VideoFileClip(vname)
+                audio = mpe.AudioFileClip(aname)
+
+                final = video.set_audio(audio)
+                final.write_videofile("final.mp4")
+
+                video.close()
+                audio.close()
+                final.close()
+
+                # cleanup
+                os.remove(vname)
+                os.remove(aname)
+
+                os.rename("final.mp4", yt_video)
+                shutil.move(yt_video, outputfolder)
+            case "Audio":
+                get_video = get_video.streams.filter(only_audio=True).first().download(outputfolder)
+                file, ext = os.path.splitext(get_video)
+                new_file = file + '.mp3'
+                os.rename(get_video, new_file)
+            case _:
+                messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
+    except FileExistsError:
+        messagebox.showerror("YouTube Video Downloader", translation['file_already_exists'])
+        return
+
+    final_frame = FinalFrame(app)
+    final_frame.pack(fill="both", expand=1)
+    download_section_frame.forget()
 
 def change_frame_to_download_section_and_get_video():
-    global frame2
+    global download_section_frame
+    global video_title
+
     if e_targetdirectory.get() == '':
         messagebox.showerror('YouTube Video Downloader', translation['no_directory_path'])
         return
-
     if e_youtubelink.get() == '':
         messagebox.showerror('YouTube Video Downloader', translation['invalid_youtube_link'])
         return
-
-    global video_title
 
     youtubelink = e_youtubelink.get()
     get_video = pytube.YouTube(youtubelink)
     video_title = get_video.title
 
-    frame2 = DownloadSectionFrame(app)
-    frame2.pack(fill="both", expand=1)
+    download_section_frame = DownloadSectionFrame(app)
+    download_section_frame.pack(fill="both", expand=1)
     frame.forget()
 
+def change_frame_to_main_frame(current_frame):
+    if current_frame == "final_frame":
+        e_youtubelink.delete(0, "end")
+        final_frame.forget()
+    if current_frame == "download_section_frame":
+        download_section_frame.destroy()
 
-def change_frame_to_main_frame():
     frame.pack(fill="both", expand=1)
-    frame2.forget()
+
 
 def setup_config_file():
     global outputfolder
@@ -133,7 +206,7 @@ def setup_language_files():
         "file_already_exists": "This file is already existing.",
         "no_directory_path": "Please enter a directory path.",
         "unknown_file_format": "Please enter a valid file format.",
-        "download_successfully": "The Video \"%video_title%\" successfully downloaded at \"%video_output_path%\".",
+        "download_successfully": "The Video \"%video_title%\"\n successfully downloaded at \"%video_output_path%\".",
         "invalid_youtube_link": "Please enter a valid youtube link.",
         "settings_confirm": "Confirm",
         "credits": "Design \"Radiance\" by RedFantom",
@@ -141,7 +214,8 @@ def setup_language_files():
         "back": "« Back",
         "video_title": "Title",
         "video_format": "Format",
-        "video_resolution": "Resolution"
+        "video_resolution": "Resolution",
+        "download_new_video": "Download new video"
     }
 
     with open('lang_en.json', 'w') as file:
@@ -162,7 +236,7 @@ def setup_language_files():
         "file_already_exists": "Die Datei existiert bereits.",
         "no_directory_path": "Bitte gebe einen Ausgabepfad an.",
         "unknown_file_format": "Bitte gebe ein gültiges Format an.",
-        "download_successfully": "Das Video \"%video_title%\" wurde unter dem Pfad \"%video_output_path%\" gespeichert.",
+        "download_successfully": "Das Video \"%video_title%\"\n wurde unter dem Pfad \"%video_output_path%\" gespeichert.",
         "invalid_youtube_link": "Bitte gebe einen gültigen YouTube-Link an.",
         "settings_confirm": "Bestätigen",
         "credits": "Design \"Radiance\" by RedFantom",
@@ -170,7 +244,8 @@ def setup_language_files():
         "back": "« Zurück",
         "video_title": "Titel",
         "video_format": "Format",
-        "video_resolution": "Auflösung"
+        "video_resolution": "Auflösung",
+        "download_new_video": "Neues Video herunterladen"
     }
 
     with open('lang_de.json', 'w') as file:
@@ -235,56 +310,6 @@ def close_settings_window():
     settings.destroy()
     app.deiconify()
 
-def download_process():
-    format_value = options_var.get()
-    youtubelink = e_youtubelink.get()
-    get_video = pytube.YouTube(youtubelink)
-    video_title = get_video.title
-
-    try:
-        match format_value:
-            case "Video":
-                vname = "video.mp4"
-                aname = "audio.mp3"
-
-                # download video and audio and rename both files
-                yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().download()
-                os.rename(yt_video, vname)
-                audio = get_video.streams.filter(only_audio=True).first().download()
-                os.rename(audio, aname)
-
-                video = mpe.VideoFileClip(vname)
-                audio = mpe.AudioFileClip(aname)
-
-                final = video.set_audio(audio)
-                final.write_videofile("final.mp4")
-
-                video.close()
-                audio.close()
-                final.close()
-
-                # cleanup
-                os.remove(vname)
-                os.remove(aname)
-
-                os.rename("final.mp4", yt_video)
-                shutil.move(yt_video, outputfolder)
-            case "Audio":
-                get_video = get_video.streams.filter(only_audio=True).first().download(outputfolder)
-                file, ext = os.path.splitext(get_video)
-                new_file = file + '.mp3'
-                os.rename(get_video, new_file)
-            case _:
-                messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
-    except FileExistsError:
-        messagebox.showerror("YouTube Video Downloader", translation['file_already_exists'])
-        return
-
-    successfully_downloaded = translation['download_successfully']
-    successfully_downloaded = successfully_downloaded.replace('%video_title%', video_title)
-    successfully_downloaded = successfully_downloaded.replace('%video_output_path%', outputfolder)
-    messagebox.showinfo("YouTube Video Downloader", successfully_downloaded)
-
 def settings_window():
     global c_language
     global settings
@@ -293,7 +318,7 @@ def settings_window():
     app.withdraw()
 
     # window setup
-    settings = tk.Toplevel()
+    settings = Toplevel()
     settings.title(translation['window_settings_title'])
     settings.resizable(False, False)
 
