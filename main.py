@@ -339,6 +339,10 @@ def settings_window():
     settings.title(translation['window_settings_title'])
     settings.resizable(False, False)
 
+    x = (settings.winfo_screenwidth() - settings.winfo_reqwidth()) / 2
+    y = (settings.winfo_screenheight() - settings.winfo_reqheight()) / 2
+    settings.geometry("+%d+%d" % (x, y))
+
     # setup objects
     l_language = ttk.Label(settings, text=translation['language'])
     l_language.grid(row=1, column=0, sticky="W")
