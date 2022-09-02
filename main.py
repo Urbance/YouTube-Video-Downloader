@@ -1,6 +1,7 @@
 import json
 import os
 import pytube
+from pytube import Playlist
 import moviepy.editor as mpe
 import shutil
 from tkinter import ttk, filedialog, messagebox, W, E, Tk, StringVar, Button, Toplevel
@@ -45,7 +46,7 @@ class MainFrame(ttk.Frame):
         b_open_outputfolder = ttk.Button(self, text=translation['output_folder'], command=open_outputfolder)
         b_open_outputfolder.grid(row=5, column=0, sticky=W, pady=10)
 
-        options = ('Video', "Audio")
+        options = ('Video', "Audio", "Playlist Audio")
         options_var = StringVar()
         om_format = ttk.OptionMenu(self, options_var, options[0], *options)
         om_format.grid(row=5, column=0, sticky=E)
@@ -95,15 +96,14 @@ def download_process():
 
     format_value = options_var.get()
     youtubelink = e_youtubelink.get()
-    get_video = pytube.YouTube(youtubelink)
-    video_title = get_video.title
-
 
     try:
         match format_value:
             case "Video":
                 vname = "video.mp4"
                 aname = "audio.mp3"
+                get_video = pytube.YouTube(youtubelink)
+                video_title = get_video.title
 
                 # download video and audio and rename both files
                 yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().download()
@@ -128,10 +128,23 @@ def download_process():
                 os.rename("final.mp4", yt_video)
                 shutil.move(yt_video, outputfolder)
             case "Audio":
+                get_video = pytube.YouTube(youtubelink)
+                video_title = get_video.title
                 get_video = get_video.streams.filter(only_audio=True).first().download(outputfolder)
                 file, ext = os.path.splitext(get_video)
                 new_file = file + '.mp3'
                 os.rename(get_video, new_file)
+            case "Playlist Audio":
+                playlist = Playlist(youtubelink)
+                video_title = playlist.title
+                print(f'Downloading: {playlist.title}')
+
+                for video in playlist.videos:
+                    video = video.streams.filter(only_audio=True).first().download(outputfolder)
+                    print(f'Start downloading Video: {video.title()}')
+                    file, ext = os.path.splitext(video)
+                    new_file = file + '.mp3'
+                    os.rename(video, new_file)
             case _:
                 messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
     except FileExistsError:
@@ -153,9 +166,14 @@ def change_frame_to_download_section_and_get_video():
         messagebox.showerror('YouTube Video Downloader', translation['invalid_youtube_link'])
         return
 
+    format_value = options_var.get()
     youtubelink = e_youtubelink.get()
-    get_video = pytube.YouTube(youtubelink)
-    video_title = get_video.title
+    if format_value == "Video" or format_value == "Audio":
+        get_video = pytube.YouTube(youtubelink)
+        video_title = get_video.title
+    if format_value == "Playlist Audio":
+        playlist = Playlist(youtubelink)
+        video_title = playlist.title
 
     download_section_frame = DownloadSectionFrame(app)
     download_section_frame.pack(fill="both", expand=1)
@@ -169,7 +187,6 @@ def change_frame_to_main_frame(current_frame):
         download_section_frame.destroy()
 
     frame.pack(fill="both", expand=1)
-
 
 def setup_config_file():
     global outputfolder
