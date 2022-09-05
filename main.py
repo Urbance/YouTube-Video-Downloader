@@ -96,6 +96,7 @@ def download_process():
 
     format_value = options_var.get()
     youtubelink = e_youtubelink.get()
+    temp_download_directory = "temp_download"
 
     try:
         match format_value:
@@ -105,46 +106,76 @@ def download_process():
                 get_video = pytube.YouTube(youtubelink)
                 video_title = get_video.title
 
-                # download video and audio and rename both files
-                yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().download()
-                os.rename(yt_video, vname)
-                audio = get_video.streams.filter(only_audio=True).first().download()
-                os.rename(audio, aname)
+                # setup download
+                os.mkdir(temp_download_directory)
 
-                video = mpe.VideoFileClip(vname)
-                audio = mpe.AudioFileClip(aname)
+                # download video and audio and rename both files and move final file
+                print("Start downloading \"" + video_title + "\"")
+                print("Download video file")
+
+                # TODO .download paramter file_name
+                yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().download(temp_download_directory)
+                temp_video_file = os.path.join(temp_download_directory, vname)
+                os.rename(yt_video, temp_video_file)
+
+                print("Download audio file")
+                audio = get_video.streams.filter(only_audio=True).first().download(temp_download_directory)
+                temp_audio_file = os.path.join(temp_download_directory, aname)
+                os.rename(audio, temp_audio_file)
+
+                print("Merge audio and video file ")
+                video = mpe.VideoFileClip(temp_video_file)
+                audio = mpe.AudioFileClip(temp_audio_file)
 
                 final = video.set_audio(audio)
-                final.write_videofile("final.mp4")
+                final.write_videofile(temp_download_directory + "/" + "final.mp4")
 
                 video.close()
                 audio.close()
                 final.close()
 
-                # cleanup
-                os.remove(vname)
-                os.remove(aname)
-
-                os.rename("final.mp4", yt_video)
+                os.rename(temp_download_directory + "/" + "final.mp4", yt_video)
                 shutil.move(yt_video, outputfolder)
+
+                # delete temp_download directory
+                shutil.rmtree(temp_download_directory)
+
             case "Audio":
+                # setup download
+                os.mkdir(temp_download_directory)
+
+                # download video
                 get_video = pytube.YouTube(youtubelink)
                 video_title = get_video.title
-                get_video = get_video.streams.filter(only_audio=True).first().download(outputfolder)
-                file, ext = os.path.splitext(get_video)
+                video = get_video.streams.filter(only_audio=True).first().download(temp_download_directory)
+
+                print("Start downloading audio \"" + video_title + "\"")
+
+                # add .mp3 format
+                file, ext = os.path.splitext(video)
                 new_file = file + '.mp3'
-                os.rename(get_video, new_file)
+                os.rename(video, new_file)
+
+                # move video to outputfolder
+                shutil.move(new_file, outputfolder)
+                os.path.dirname(os.path.dirname(__file__))
+
+                # delete temp_download directory
+                os.removedirs(temp_download_directory)
+
             case "Playlist Audio":
                 playlist = Playlist(youtubelink)
                 video_title = playlist.title
-                print(f'Downloading: {playlist.title}')
 
                 for video in playlist.videos:
-                    video = video.streams.filter(only_audio=True).first().download(outputfolder)
-                    print(f'Start downloading Video: {video.title()}')
-                    file, ext = os.path.splitext(video)
+                    video = video.streams.filter(only_audio=True).first()
+                    video_file = video.download(outputfolder)
+
+                    print("Start downloading audio \"" + video.title + "\"")
+
+                    file, ext = os.path.splitext(video_file)
                     new_file = file + '.mp3'
-                    os.rename(video, new_file)
+                    os.rename(video_file, new_file)
             case _:
                 messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
     except FileExistsError:
@@ -223,7 +254,7 @@ def setup_language_files():
         "file_already_exists": "This file is already existing.",
         "no_directory_path": "Please enter a directory path.",
         "unknown_file_format": "Please enter a valid file format.",
-        "download_successfully": "The Video \"%video_title%\"\n successfully downloaded at \"%video_output_path%\".",
+        "download_successfully": "The Video \"%video_title%\"\nsuccessfully downloaded at \"%video_output_path%\".",
         "invalid_youtube_link": "Please enter a valid youtube link.",
         "settings_confirm": "Confirm",
         "credits": "Design \"Radiance\" by RedFantom",
@@ -253,7 +284,7 @@ def setup_language_files():
         "file_already_exists": "Die Datei existiert bereits.",
         "no_directory_path": "Bitte gebe einen Ausgabepfad an.",
         "unknown_file_format": "Bitte gebe ein gültiges Format an.",
-        "download_successfully": "Das Video \"%video_title%\"\n wurde unter dem Pfad \"%video_output_path%\" gespeichert.",
+        "download_successfully": "Das Video \"%video_title%\"\nwurde unter dem Pfad \"%video_output_path%\" gespeichert.",
         "invalid_youtube_link": "Bitte gebe einen gültigen YouTube-Link an.",
         "settings_confirm": "Bestätigen",
         "credits": "Design \"Radiance\" by RedFantom",
@@ -367,7 +398,6 @@ if __name__ == "__main__":
     # setup window and frame
     app = App()
     frame = MainFrame(app)
-    # frame2 = DownloadSection(app)
 
     # setup style
     style = ttk.Style()
