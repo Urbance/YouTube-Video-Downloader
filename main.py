@@ -98,6 +98,9 @@ def download_process():
     youtubelink = e_youtubelink.get()
     temp_download_directory = "temp_download"
 
+    if os.path.exists(temp_download_directory):
+        shutil.rmtree(temp_download_directory)
+
     try:
         match format_value:
             case "Video":
