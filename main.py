@@ -1,3 +1,7 @@
+"""
+YouTube-Video-Downloader
+"""
+
 import json
 import os
 import pytube
@@ -51,13 +55,37 @@ class MainFrame(ttk.Frame):
         om_format = ttk.OptionMenu(self, options_var, options[0], *options)
         om_format.grid(row=5, column=0, sticky=E)
 
-        b_next_frame = ttk.Button(self, text=translation['next'], command=lambda:change_frame_to_download_section_and_get_video())
+        b_next_frame = ttk.Button(self, text=translation['next'], command=lambda : self.change_window())
         b_next_frame.grid(row=6, column=0, sticky=E, pady=10)
 
         b_settings = Button(self, text="⚙", bd=0, highlightthickness=0, command=settings_window)
         b_settings.grid(row=6, column=0, sticky=W)
 
         self.pack(fill="both", expand=1)
+    def change_window(self):
+        global download_section_frame
+        global video_title
+
+        if e_targetdirectory.get() == '':
+            messagebox.showerror('YouTube Video Downloader', translation['no_directory_path'])
+            return
+        if e_youtubelink.get() == '':
+            messagebox.showerror('YouTube Video Downloader', translation['invalid_youtube_link'])
+            return
+
+        format_value = options_var.get()
+        youtubelink = e_youtubelink.get()
+        if format_value == "Video" or format_value == "Audio":
+            get_video = pytube.YouTube(youtubelink)
+            video_title = get_video.title
+        if format_value == "Playlist Audio":
+            playlist = Playlist(youtubelink)
+            video_title = playlist.title
+
+        download_section_frame = DownloadSectionFrame(app)
+        download_section_frame.pack(fill="both", expand=1)
+        frame.forget()
+
 class DownloadSectionFrame(ttk.Frame):
     def __init__(self, container):
         super().__init__(container)
@@ -67,11 +95,119 @@ class DownloadSectionFrame(ttk.Frame):
         l_video_informations = ttk.Label(self, text=translation['video_title'] + ": " + video_title + "\n" + translation['video_format'] + ": " + format_value + "\n" + translation['video_resolution'] + ": " + "Highest Resolution")
         l_video_informations.grid(row=1, column=0)
 
-        b_back = ttk.Button(self, text=translation['back'], command=lambda:change_frame_to_main_frame("download_section_frame"))
+        b_back = ttk.Button(self, text=translation['back'], command=lambda:self.change_to_main_frame())
         b_back.grid(row=3, column=0, sticky=W)
 
-        b_download = ttk.Button(self, text=translation['download'], command=download_process)
+        b_download = ttk.Button(self, text=translation['download'], command=lambda:self.download_process())
         b_download.grid(row=3, column=1, sticky=E)
+
+    def change_to_main_frame(self):
+        self.destroy()
+
+        frame.pack(fill="both", expand=1)
+
+    def download_process(self):
+        global video_title
+        global final_frame
+
+        format_value = options_var.get()
+        youtubelink = e_youtubelink.get()
+        temp_download_directory = "temp_download"
+
+        if os.path.exists(temp_download_directory):
+            shutil.rmtree(temp_download_directory)
+
+        try:
+            match format_value:
+                case "Video":
+                    vname = "video.mp4"
+                    aname = "audio.mp3"
+                    get_video = pytube.YouTube(youtubelink)
+                    video_title = get_video.title
+
+                    # setup download
+                    os.mkdir(temp_download_directory)
+
+                    # download video and audio and rename both files and move final file
+                    print(f"Start downloading \"{video_title}\"")
+                    print("Download video file")
+
+                    # TODO .download paramter file_name
+                    yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by(
+                        "resolution").desc().first().download(temp_download_directory)
+                    temp_video_file = os.path.join(temp_download_directory, vname)
+                    os.rename(yt_video, temp_video_file)
+
+                    print("Download audio file")
+                    audio = get_video.streams.filter(only_audio=True).first().download(temp_download_directory)
+                    temp_audio_file = os.path.join(temp_download_directory, aname)
+                    os.rename(audio, temp_audio_file)
+
+                    print("Merge audio and video file ")
+                    video = mpe.VideoFileClip(temp_video_file)
+                    audio = mpe.AudioFileClip(temp_audio_file)
+
+                    final = video.set_audio(audio)
+                    final.write_videofile(temp_download_directory + "/" + "final.mp4")
+
+                    video.close()
+                    audio.close()
+                    final.close()
+
+                    os.rename(temp_download_directory + "/" + "final.mp4", yt_video)
+                    shutil.move(yt_video, outputfolder)
+
+                    # delete temp_download directory
+                    shutil.rmtree(temp_download_directory)
+
+                case "Audio":
+                    # setup download
+                    os.mkdir(temp_download_directory)
+
+                    # download video
+                    get_video = pytube.YouTube(youtubelink)
+                    video_title = get_video.title
+                    video = get_video.streams.filter(only_audio=True).first().download(temp_download_directory)
+
+                    print(f"Start downloading audio \"{video_title}\"")
+
+                    # add .mp3 format
+                    file, ext = os.path.splitext(video)
+                    new_file = file + '.mp3'
+                    os.rename(video, new_file)
+
+                    # move video to outputfolder
+                    shutil.move(new_file, outputfolder)
+                    os.path.dirname(os.path.dirname(__file__))
+
+                    # delete temp_download directory
+                    os.removedirs(temp_download_directory)
+
+                case "Playlist Audio":
+                    playlist = Playlist(youtubelink)
+                    video_title = playlist.title
+
+                    for video in playlist.videos:
+                        video = video.streams.filter(only_audio=True).first()
+                        video_file = video.download(outputfolder)
+
+                        print(f"Start downloading audio \"{video_title}\"")
+
+                        file, ext = os.path.splitext(video_file)
+                        new_file = file + '.mp3'
+                        os.rename(video_file, new_file)
+                case _:
+                    messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
+        except FileExistsError:
+            messagebox.showerror("YouTube Video Downloader", translation['file_already_exists'])
+            return
+
+        self.change_to_final_frame()
+
+    def change_to_final_frame(self):
+        final_frame = FinalFrame(app)
+        final_frame.pack(fill="both", expand=1)
+        self.forget()
 
 class FinalFrame(ttk.Frame):
     def __init__(self, container):
@@ -83,144 +219,16 @@ class FinalFrame(ttk.Frame):
         l_successfully_downloaded = ttk.Label(self, text=successfully_downloaded)
         l_successfully_downloaded.grid(row=1, column=0)
 
-        b_download_new_video = ttk.Button(self, text=translation['download_new_video'], command=lambda:change_frame_to_main_frame("final_frame"))
+        b_download_new_video = ttk.Button(self, text=translation['download_new_video'], command=lambda:self.change_to_main_frame())
         b_download_new_video.grid(row=2, column=0, sticky=E)
 
         b_open_outputfolder = ttk.Button(self, text=translation['output_folder'], command=open_outputfolder)
         b_open_outputfolder.grid(row=2, column=0, sticky=W, pady=10)
 
-
-def download_process():
-    global video_title
-    global final_frame
-
-    format_value = options_var.get()
-    youtubelink = e_youtubelink.get()
-    temp_download_directory = "temp_download"
-
-    if os.path.exists(temp_download_directory):
-        shutil.rmtree(temp_download_directory)
-
-    try:
-        match format_value:
-            case "Video":
-                vname = "video.mp4"
-                aname = "audio.mp3"
-                get_video = pytube.YouTube(youtubelink)
-                video_title = get_video.title
-
-                # setup download
-                os.mkdir(temp_download_directory)
-
-                # download video and audio and rename both files and move final file
-                print("Start downloading \"" + video_title + "\"")
-                print("Download video file")
-
-                # TODO .download paramter file_name
-                yt_video = get_video.streams.filter(mime_type="video/mp4", progressive=False).order_by("resolution").desc().first().download(temp_download_directory)
-                temp_video_file = os.path.join(temp_download_directory, vname)
-                os.rename(yt_video, temp_video_file)
-
-                print("Download audio file")
-                audio = get_video.streams.filter(only_audio=True).first().download(temp_download_directory)
-                temp_audio_file = os.path.join(temp_download_directory, aname)
-                os.rename(audio, temp_audio_file)
-
-                print("Merge audio and video file ")
-                video = mpe.VideoFileClip(temp_video_file)
-                audio = mpe.AudioFileClip(temp_audio_file)
-
-                final = video.set_audio(audio)
-                final.write_videofile(temp_download_directory + "/" + "final.mp4")
-
-                video.close()
-                audio.close()
-                final.close()
-
-                os.rename(temp_download_directory + "/" + "final.mp4", yt_video)
-                shutil.move(yt_video, outputfolder)
-
-                # delete temp_download directory
-                shutil.rmtree(temp_download_directory)
-
-            case "Audio":
-                # setup download
-                os.mkdir(temp_download_directory)
-
-                # download video
-                get_video = pytube.YouTube(youtubelink)
-                video_title = get_video.title
-                video = get_video.streams.filter(only_audio=True).first().download(temp_download_directory)
-
-                print("Start downloading audio \"" + video_title + "\"")
-
-                # add .mp3 format
-                file, ext = os.path.splitext(video)
-                new_file = file + '.mp3'
-                os.rename(video, new_file)
-
-                # move video to outputfolder
-                shutil.move(new_file, outputfolder)
-                os.path.dirname(os.path.dirname(__file__))
-
-                # delete temp_download directory
-                os.removedirs(temp_download_directory)
-
-            case "Playlist Audio":
-                playlist = Playlist(youtubelink)
-                video_title = playlist.title
-
-                for video in playlist.videos:
-                    video = video.streams.filter(only_audio=True).first()
-                    video_file = video.download(outputfolder)
-
-                    print("Start downloading audio \"" + video.title + "\"")
-
-                    file, ext = os.path.splitext(video_file)
-                    new_file = file + '.mp3'
-                    os.rename(video_file, new_file)
-            case _:
-                messagebox.showerror("YouTube Video Downloader", translation['unknown_file_format'])
-    except FileExistsError:
-        messagebox.showerror("YouTube Video Downloader", translation['file_already_exists'])
-        return
-
-    final_frame = FinalFrame(app)
-    final_frame.pack(fill="both", expand=1)
-    download_section_frame.forget()
-
-def change_frame_to_download_section_and_get_video():
-    global download_section_frame
-    global video_title
-
-    if e_targetdirectory.get() == '':
-        messagebox.showerror('YouTube Video Downloader', translation['no_directory_path'])
-        return
-    if e_youtubelink.get() == '':
-        messagebox.showerror('YouTube Video Downloader', translation['invalid_youtube_link'])
-        return
-
-    format_value = options_var.get()
-    youtubelink = e_youtubelink.get()
-    if format_value == "Video" or format_value == "Audio":
-        get_video = pytube.YouTube(youtubelink)
-        video_title = get_video.title
-    if format_value == "Playlist Audio":
-        playlist = Playlist(youtubelink)
-        video_title = playlist.title
-
-    download_section_frame = DownloadSectionFrame(app)
-    download_section_frame.pack(fill="both", expand=1)
-    frame.forget()
-
-def change_frame_to_main_frame(current_frame):
-    if current_frame == "final_frame":
+    def change_to_main_frame(self):
         e_youtubelink.delete(0, "end")
-        final_frame.forget()
-    if current_frame == "download_section_frame":
-        download_section_frame.destroy()
-
-    frame.pack(fill="both", expand=1)
+        self.forget()
+        frame.pack(fill="both", expand=1)
 
 def setup_config_file():
     global outputfolder
