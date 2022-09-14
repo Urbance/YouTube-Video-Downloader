@@ -62,6 +62,7 @@ class MainFrame(ttk.Frame):
         b_settings.grid(row=6, column=0, sticky=W)
 
         self.pack(fill="both", expand=1)
+
     def change_window(self):
         global download_section_frame
         global video_title
@@ -230,6 +231,37 @@ class FinalFrame(ttk.Frame):
         self.forget()
         frame.pack(fill="both", expand=1)
 
+def settings_window():
+    global c_language
+    global settings
+
+    # vanish root window
+    app.withdraw()
+
+    # window setup
+    settings = Toplevel()
+    settings.title(translation['window_settings_title'])
+    settings.resizable(False, False)
+
+    x = (settings.winfo_screenwidth() - settings.winfo_reqwidth()) / 2
+    y = (settings.winfo_screenheight() - settings.winfo_reqheight()) / 2
+    settings.geometry("+%d+%d" % (x, y))
+
+    # setup objects
+    l_language = ttk.Label(settings, text=translation['language'])
+    l_language.grid(row=1, column=0, sticky="W")
+
+    c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly")
+    fill_language_field()
+    c_language.grid(row=2, column=0, ipadx=100)
+    c_language.bind('<<ComboboxSelected>>', update_language)
+
+    b_closewindow = ttk.Button(settings, text=translation['settings_confirm'], command=close_settings_window)
+    b_closewindow.grid(row=3, column=0, pady=10)
+
+    l_credits = ttk.Label(settings, text=translation['credits'])
+    l_credits.grid(row=4, column=0, sticky="W")
+
 def setup_config_file():
     global outputfolder
 
@@ -240,6 +272,7 @@ def setup_config_file():
         return
 
     outputfolder = os.environ['USERPROFILE'] + "\Music\YouTube-Video-Downloader"
+    os.mkdir(outputfolder)
     config_values = {
         "language": "English",
         "output_folder": outputfolder
@@ -249,7 +282,6 @@ def setup_config_file():
         json.dump(config_values, file, indent=4)
 
 def setup_language_files():
-
     # create english language file
     values = {
         "download": "Download »",
@@ -369,36 +401,6 @@ def close_settings_window():
     settings.destroy()
     app.deiconify()
 
-def settings_window():
-    global c_language
-    global settings
-
-    # vanish root window
-    app.withdraw()
-
-    # window setup
-    settings = Toplevel()
-    settings.title(translation['window_settings_title'])
-    settings.resizable(False, False)
-
-    x = (settings.winfo_screenwidth() - settings.winfo_reqwidth()) / 2
-    y = (settings.winfo_screenheight() - settings.winfo_reqheight()) / 2
-    settings.geometry("+%d+%d" % (x, y))
-
-    # setup objects
-    l_language = ttk.Label(settings, text=translation['language'])
-    l_language.grid(row=1, column=0, sticky="W")
-
-    c_language = ttk.Combobox(settings, values=["English", "Deutsch"], state="readonly")
-    fill_language_field()
-    c_language.grid(row=2, column=0, ipadx=100)
-    c_language.bind('<<ComboboxSelected>>', update_language)
-
-    b_closewindow = ttk.Button(settings, text=translation['settings_confirm'], command=close_settings_window)
-    b_closewindow.grid(row=3, column=0, pady=10)
-
-    l_credits = ttk.Label(settings, text=translation['credits'])
-    l_credits.grid(row=4, column=0, sticky="W")
 
 if __name__ == "__main__":
     # startup
