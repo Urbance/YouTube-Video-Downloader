@@ -272,7 +272,12 @@ def setup_config_file():
         return
 
     outputfolder = os.environ['USERPROFILE'] + "\Music\YouTube-Video-Downloader"
-    os.mkdir(outputfolder)
+
+    try:
+        os.mkdir(outputfolder)
+    except FileExistsError:
+        pass
+
     config_values = {
         "language": "English",
         "output_folder": outputfolder
@@ -395,8 +400,11 @@ def update_language(event):
     os.startfile("main.py")
 
 def open_outputfolder():
-    os.startfile(outputfolder)
-
+    try:
+        os.startfile(outputfolder)
+    except FileNotFoundError:
+        os.mkdir(outputfolder)
+        os.startfile(outputfolder)
 def close_settings_window():
     settings.destroy()
     app.deiconify()
