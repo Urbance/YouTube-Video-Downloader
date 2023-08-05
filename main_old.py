@@ -16,8 +16,6 @@ import moviepy.editor as mpe
 import shutil
 from tkinter import ttk, filedialog, messagebox, W, E, Tk, StringVar, Button, Toplevel
 
-import DownloadManager
-
 
 class App(Tk):
     def __init__(self):
@@ -81,6 +79,8 @@ class MainFrame(ttk.Frame):
         self.pack(fill="both", expand=1)
 
     def change_to_download_frame(self):
+        global video_title
+
         if e_targetdirectory.get() == '':
             messagebox.showerror('YouTube Video Downloader', translation['no_directory_path'])
             return
@@ -97,21 +97,19 @@ class MainFrame(ttk.Frame):
             playlist = Playlist(youtubelink)
             video_title = playlist.title
 
-        download_frame = DownloadFrame(app, video_title)
+        download_frame = DownloadFrame(app)
         download_frame.pack(fill="both", expand=1)
         self.forget()
 
 
 class DownloadFrame(ttk.Frame):
-    def __init__(self, container, video_title):
+    def __init__(self, container):
         super().__init__(container)
-
-        self.video_title = video_title
 
         video_format = options_var.get()
 
         l_video_title = ttk.Label(
-            self, text=self.video_title)
+            self, text=video_title)
         l_video_title.grid(row=1, column=0)
         l_video_information = ttk.Label(self, text=f"{video_format}")
         l_video_information.grid(row=2, column=0)
@@ -201,9 +199,31 @@ class DownloadFrame(ttk.Frame):
 
                     # delete temp_download directory
                     shutil.rmtree(temp_download_directory)
+
                 case "Audio":
+                    # setup download
+                    os.mkdir(temp_download_directory)
+
+                    # download video
                     get_video = pytube.YouTube(video_link)
-                    DownloadManager.Download(get_video, outputfolder).download_audio()
+                    video_title = get_video.title
+
+                    print(f"Start downloading audio \"{video_title}\"")
+                    self.l_state_line.config(text="Download audio")
+                    video = get_video.streams.filter(only_audio=True).first().download(temp_download_directory)
+
+                    # add .mp3 format
+                    file, ext = os.path.splitext(video)
+                    new_file = file + '.mp3'
+                    os.rename(video, new_file)
+
+                    # move video to outputfolder
+                    shutil.move(new_file, outputfolder)
+                    os.path.dirname(os.path.dirname(__file__))
+
+                    # delete temp_download directory
+                    os.removedirs(temp_download_directory)
+
                 case "Playlist Audio":
                     playlist = Playlist(video_link)
                     video_title = playlist.title
@@ -228,7 +248,7 @@ class DownloadFrame(ttk.Frame):
     def download_post_processing(self):
         self.pb_progressbar.destroy()
         successfully_downloaded = translation['download_successfully']
-        successfully_downloaded = successfully_downloaded.replace('%video_title%', self.video_title)
+        successfully_downloaded = successfully_downloaded.replace('%video_title%', video_title)
         self.l_state_line.config(text=successfully_downloaded)
         b_download_new_video = ttk.Button(
             self, text=translation['download_new_video'], command=lambda: self.change_to_main_frame())
@@ -379,5 +399,3 @@ if __name__ == "__main__":
     frame = MainFrame(app)
 
     app.mainloop()
-
-    # TODO rebuild status line

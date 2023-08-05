@@ -1,0 +1,20 @@
+{
+    "download": "Download \u00bb",
+    "format_option_audio": "Audio",
+    "format_option_video": "Video",
+    "link_to_youtube_video": "Link to YouTube-Video",
+    "output_folder": "Open output-folder",
+    "path_to_location": "Path to output-folder",
+    "browse": "Browse",
+    "language": "Language",
+    "restart_program": "The application is restarted for the change to take effect",
+    "window_settings_title": "YouTube Video Downloader - Settings",
+    "file_already_exists": "This file is already existing.",
+    "no_directory_path": "Please enter a directory path.",
+    "unknown_file_format": "Please enter a valid file format.",
+    "download_successfully": "The Video \"%video_title%\"\n was successfully downloaded",
+    "invalid_youtube_link": "Please enter a valid youtube link.",
+    "settings_confirm": "Confirm",
+    "credits": "Design \"Radiance\" by RedFantom",
+    "download_new_video": "Download new video"
+}
