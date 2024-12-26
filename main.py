@@ -5,19 +5,21 @@ A simple YouTube Video Downloader that supports .mp3 and .mp4 format
 
 import json
 import os
+# import moviepy.editor as mpe
+import shutil
 import threading
 from io import BytesIO
 
-import pytube
+import PIL.Image
+import moviepy as mpe
+import pytubefix
 import requests
 from PIL import ImageTk, Image
-from pytube import Playlist
-import moviepy.editor as mpe
-import shutil
-from tkinter import ttk, filedialog, messagebox, W, E, Tk, StringVar, Button, Toplevel
+from pytubefix import Playlist
 
 import DownloadManager
 
+from tkinter import ttk, filedialog, messagebox, W, E, Tk, StringVar, Button, Toplevel
 
 class App(Tk):
     def __init__(self):
@@ -91,7 +93,7 @@ class MainFrame(ttk.Frame):
         format_value = options_var.get()
         youtubelink = e_youtubelink.get()
         if format_value == "Video" or format_value == "Audio":
-            get_video = pytube.YouTube(youtubelink)
+            get_video = pytubefix.YouTube(youtubelink)
             video_title = get_video.title
         if format_value == "Playlist Audio":
             playlist = Playlist(youtubelink)
@@ -126,10 +128,10 @@ class DownloadFrame(ttk.Frame):
 
     def set_thumbnail(self):
         video_link = e_youtubelink.get()
-        thumbnail_url = pytube.YouTube(video_link).thumbnail_url
+        thumbnail_url = pytubefix.YouTube(video_link).thumbnail_url
         response = requests.get(thumbnail_url)
         thumbnail = Image.open(BytesIO(response.content))
-        thumbnail = thumbnail.resize((225, 150), Image.ANTIALIAS)
+        thumbnail = thumbnail.resize((225, 150), Image.Resampling.LANCZOS)
         thumbnail = ImageTk.PhotoImage(thumbnail)
         l_thumbnail = ttk.Label(self, image=thumbnail)
         l_thumbnail.image = thumbnail
@@ -162,7 +164,7 @@ class DownloadFrame(ttk.Frame):
                 case "Video":
                     vname = "video.mp4"
                     aname = "audio.mp3"
-                    get_video = pytube.YouTube(video_link)
+                    get_video = pytubefix.YouTube(video_link)
                     video_title = get_video.title
 
                     # setup download
@@ -202,7 +204,7 @@ class DownloadFrame(ttk.Frame):
                     # delete temp_download directory
                     shutil.rmtree(temp_download_directory)
                 case "Audio":
-                    get_video = pytube.YouTube(video_link)
+                    get_video = pytubefix.YouTube(video_link)
                     DownloadManager.Download(get_video, outputfolder).download_audio()
                 case "Playlist Audio":
                     playlist = Playlist(video_link)
@@ -286,7 +288,7 @@ def setup_config_file():
             outputfolder = data['output_folder']
         return
 
-    outputfolder = os.environ['USERPROFILE'] + "\Music\YouTube-Video-Downloader"
+    outputfolder = os.environ['USERPROFILE'] + "\\Music\\YouTube-Video-Downloader"
 
     try:
         os.mkdir(outputfolder)
