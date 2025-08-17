@@ -191,7 +191,7 @@ class DownloadFrame(ttk.Frame):
                     video = mpe.VideoFileClip(temp_video_file)
                     audio = mpe.AudioFileClip(temp_audio_file)
 
-                    final = video.set_audio(audio)
+                    final = video.with_audio(audio)
                     final.write_videofile(temp_download_directory + "/" + "final.mp4")
 
                     video.close()
